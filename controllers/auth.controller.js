@@ -27,8 +27,8 @@ exports.login = async (req, res) => {
         const accessToken = SignJWT({ sessionId: req.session.id, email: email, role: user.role, id: user._id }, '60d');
         const refreshToken = SignJWT({ sessionId: req.session.id }, '1y');
 
-        res.cookie('accessToken', accessToken, { httpOnly: true, maxAge: 3600000 });
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 31536000000 });
+        res.cookie('accessToken', accessToken, { httpOnly: true, maxAge: 3600000, secure: true, sameSite: 'none' });
+        res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 31536000000, secure: true, sameSite: 'none' });
 
         res.status(200).json({
             accessToken,
@@ -68,11 +68,6 @@ exports.register = async (req, res) => {
         }))
         user.token = generatedToken
         await user.save()
-        await Campaign.create({
-            name: `${company}_campagne`,
-            description: `Campagne de ${company}`,
-            owner: user._id
-        })
         sendRegisterEmail({ email, hash: generatedToken })
 
         res.status(201).json(user);
@@ -113,8 +108,8 @@ exports.logout = async (req, res) => {
             if (err) {
                 return res.status(500).json("Déconnexion a échoué");
             }
-            res.cookie('accessToken', '', { httpOnly: true, maxAge: 0 });
-            res.cookie('refreshToken', '', { httpOnly: true, maxAge: 0 });
+            res.cookie('accessToken', '', { httpOnly: true, maxAge: 0 , secure: true, sameSite: 'none'});
+            res.cookie('refreshToken', '', { httpOnly: true, maxAge: 0, secure: true, sameSite: 'none' });
             res.status(200).json("Déconnecté");
         });
     } catch (error) {
